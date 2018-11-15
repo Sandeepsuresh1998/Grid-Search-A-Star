@@ -50,8 +50,6 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 		xyLoc current = (open_set.top()).second; 
 		open_set.pop();
 
-		cout << "X: " << current.x << " , Y: " << current.y << endl;
-
 		//We found goal state
 		if(current == destination) {
 			cout << "Got to destination" << endl;
@@ -106,9 +104,6 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 
 						//Add loc to open and closed set				
 						open_set.push(make_pair(GetHValue(neighbors[i]) + g_value_map[neighbors[i]], neighbors[i]));
-						cout << "h-value: " << GetHValue(neighbors[i]) << ", ";
-						cout << "g-value: " << g_value_map[neighbors[i]] << ", ";
-						cout << "F-value: " <<  GetHValue(neighbors[i]) + g_value_map[neighbors[i]] << endl;
 						closed_set.insert(neighbors[i]);
 						path_map[neighbors[i]] = current;
 					} else {
