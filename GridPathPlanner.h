@@ -24,6 +24,7 @@ private:
 	xyLoc destination;				// Fixed goal cell.
 	bool larger_g;	// If set to true, your search should tie-break towards larger g-values.
 									// If set to false, your search should tie-break towards smaller g-values.
+	int num_expansions;
 };
 
 #endif

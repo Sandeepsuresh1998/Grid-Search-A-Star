@@ -1,5 +1,6 @@
 #include "GridPathPlanner.h"
 #include <set>
+#include <iostream>
 #include <queue>
 #include <map>
 #include <algorithm>
@@ -11,6 +12,7 @@ GridPathPlanner::GridPathPlanner(PartiallyKnownGrid* grid_, xyLoc destination_, 
 	destination = destination_;
 	adaptive = adaptive_;
 	larger_g = larger_g_;
+	num_expansions = 0;
 }
 
 GridPathPlanner::~GridPathPlanner(){
@@ -18,6 +20,9 @@ GridPathPlanner::~GridPathPlanner(){
 
   
 void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
+	
+	num_expansions = 0;
+
 	// TODO
 	// Possible flow:
 	// - Initialize data structures / open list
@@ -52,23 +57,23 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 
 		//We found goal state
 		if(current == destination) {
-			cout << "Got to destination" << endl;
-			path.push_back(current);
+
+			path.insert(path.begin(), current);
 
 			//Creating the path
 			while(path_map[current] != start) {
 				//Add where the cell came from
-				path.push_back(path_map[current]);
+				path.insert(path.begin(), path_map[current]);
 
 				//Update current
 				current = path_map[current];
 			}
 
 			//Add the starting cell
-			path.push_back(start);
+			path.insert(path.begin(), start);
 
-			//We need to reverse this
-			reverse(path.begin(), path.end());
+			// //We need to reverse this
+			// reverse(path.begin(), path.end());
 
 			return;
 
@@ -106,6 +111,7 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 						open_set.push(make_pair(GetHValue(neighbors[i]) + g_value_map[neighbors[i]], neighbors[i]));
 						closed_set.insert(neighbors[i]);
 						path_map[neighbors[i]] = current;
+						num_expansions += 1;
 					} else {
 						closed_set.insert(neighbors[i]);
 						continue;
@@ -113,11 +119,13 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 				} else {
 					//Still add this to the closed set so we don't explore it again
 					closed_set.insert(neighbors[i]);
+
 				}
 			}
 		}
 
 	}
+
 
 
 }
@@ -137,7 +145,7 @@ int GridPathPlanner::GetHValue(xyLoc l) {
 }
 
 int GridPathPlanner::GetNumExpansionsFromLastSearch() {
-	// TODO
-	return 0;
+	
+	return num_expansions;
 }
 
