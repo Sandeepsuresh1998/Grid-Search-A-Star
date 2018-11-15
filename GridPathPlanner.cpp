@@ -31,14 +31,17 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 	//Creating the open set with pairs of f-value and Locations
 	//This allows for sorting by smallest f-value
 	priority_queue< pair< int, xyLoc > , vector< pair< int, xyLoc> >, greater< pair< int, xyLoc > > > open_set;
-	open_set.push(make_pair(GetHValue(start), start)); //No g(s) bc it is the start node
+	open_set.push(make_pair(GetHValue(start) + 0, start)); //No g(s) bc it is the start node
+	closed_set.insert(start);
 
 	//Map to remember where each cell came from key = xyloc, value = where xyloc came from
 	map < xyLoc, xyLoc > path_map;
 	path_map.insert(make_pair(start, start));
 
-	// //TODO: We need to be able to trace back the path, so having a map where each thing location came from would be useful
+	map< xyLoc, int > g_value_map;
+	g_value_map.insert(make_pair(start, 0));
 
+	//TODO: We need to be able to trace back the path, so having a map where each thing location came from would be useful
 
 	//Keep iterating until we have no more nodes to explore. 
 	//If we find the goal state we break.
@@ -47,12 +50,11 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 		xyLoc current = (open_set.top()).second; 
 		open_set.pop();
 
-		//Now that we have seen this node at it to the closed set
-		closed_set.insert(current);
+		cout << "X: " << current.x << " , Y: " << current.y << endl;
 
 		//We found goal state
 		if(current == destination) {
-
+			cout << "Got to destination" << endl;
 			path.push_back(current);
 
 			//Creating the path
@@ -79,14 +81,14 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 		//Left
 		neighbors.push_back(xyLoc(current.x - 1, current.y));
 		
-		//Up
+		//Down
 		neighbors.push_back(xyLoc(current.x, current.y + 1));
 		
 		//Right
 		neighbors.push_back(xyLoc(current.x + 1, current.y));
 	
-		//Down
-		neighbors.push_back(xyLoc(current.x, current.y + 1));
+		//Up
+		neighbors.push_back(xyLoc(current.x, current.y - 1));
 		
 
 		//Iterate through the neighbors and add them to the lists
@@ -99,9 +101,18 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 				if(!(grid->IsBlocked(neighbors[i]))) {
 					//If we spot hasn't been searched before, let's add it to the list
 					if(closed_set.find(neighbors[i]) == closed_set.end()) {
-						open_set.push(make_pair(GetHValue(neighbors[i]) , neighbors[i]));
+						//Add G value to map
+						g_value_map.insert(make_pair(neighbors[i], g_value_map[current] + 1));
+
+						//Add loc to open and closed set				
+						open_set.push(make_pair(GetHValue(neighbors[i]) + g_value_map[neighbors[i]], neighbors[i]));
+						cout << "h-value: " << GetHValue(neighbors[i]) << ", ";
+						cout << "g-value: " << g_value_map[neighbors[i]] << ", ";
+						cout << "F-value: " <<  GetHValue(neighbors[i]) + g_value_map[neighbors[i]] << endl;
 						closed_set.insert(neighbors[i]);
+						path_map[neighbors[i]] = current;
 					} else {
+						closed_set.insert(neighbors[i]);
 						continue;
 					}
 				} else {
@@ -109,14 +120,12 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 					closed_set.insert(neighbors[i]);
 				}
 			}
-
 		}
 
 	}
 
 
 }
-
 
 int GridPathPlanner::GetHValue(xyLoc l) {
 	// TODO
