@@ -13,7 +13,7 @@ int main() {
 	sim.SetStepsPerSecond(5);
 	sim.SetConfirmationAfterEachMove(false);
 	
-	bool adaptive = false;
+	bool adaptive = true;
 	bool higher_g = false;
 	sim.Simulate(adaptive, higher_g);
 

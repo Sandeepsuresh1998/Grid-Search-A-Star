@@ -21,16 +21,15 @@ GridPathPlanner::~GridPathPlanner(){
 
   
 void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
-	cout << "Called" << endl;
-	
+
 	num_expansions = 0;
 
 	// TODO
 	// Possible flow:
 	// - Initialize data structures / open list
-  // - Search until goal is selected for expansion
-  // - Extract path
-  // - Update heuristic if adaptive
+	// - Search until goal is selected for expansion
+	// - Extract path
+ 	// - Update heuristic if adaptive
 
 	//Create Grid to hold xyLoc Holder struct. All information can come from here.
 	xyLocHolder grid_info[grid->GetWidth()][grid->GetHeight()];	
@@ -56,6 +55,7 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 
 		//We found goal state
 		if(current == destination) {
+
 			path.insert(path.begin(), current);
 
 			//Creating the path
@@ -66,16 +66,18 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 
 				//Update current
 				current = grid_info[current.x][current.y].parent;
-
-				if(current == start) {
-					cout << "WHOA" << endl;
-				}
 			}
 
 			//Add the starting cell
 			path.insert(path.begin(), start);
 
-
+			if(adaptive) {
+				//Update all the H-values in the closed set
+				set<xyLoc>::iterator it;
+				for(it = closed_set.begin(); it != closed_set.end(); ++it) {
+					grid_info[it->x][it->y].h_val = grid_info[destination.x][destination.y].g_val - grid_info[it->x][it->y].g_val;
+				}
+			}
 			return;
 
 		}
@@ -108,15 +110,20 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 					if(closed_set.find(neighbors[i]) == closed_set.end()) {
 						//Add loc to open and closed set				
 						//Adding the neighbors to the grid info
+
+						//Updating Grid info
 						int g_value = grid_info[current.x][current.y].g_val + 1;
-						open_set.push(make_pair(g_value + GetHValue(neighbors[i]), neighbors[i]));
+						grid_info[neighbors[i].x][neighbors[i].y].parent = current;
+						grid_info[neighbors[i].x][neighbors[i].y].g_val = g_value;
+						grid_info[neighbors[i].x][neighbors[i].y].h_val = GetHValue(neighbors[i]);	
+						grid_info[neighbors[i].x][neighbors[i].y].loc = neighbors[i];
+
+						
+						open_set.push(make_pair(g_value + grid_info[neighbors[i].x][neighbors[i].y].h_val, neighbors[i]));
 						closed_set.insert(neighbors[i]);
 						num_expansions += 1;
 
-						//Updating Grid info
-						grid_info[neighbors[i].x][neighbors[i].y].parent = current;
-						grid_info[neighbors[i].x][neighbors[i].y].g_val = g_value;
-						grid_info[neighbors[i].x][neighbors[i].y].h_val = GetHValue(neighbors[i]);
+						
 					} else {
 						closed_set.insert(neighbors[i]);
 						continue;
@@ -136,18 +143,10 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 }
 
 int GridPathPlanner::GetHValue(xyLoc l) {
-	// TODO
-
-
-	if(adaptive) {
-		//Return updated h-value of cell
-		
-
-	} else {
-		//Return Manhattan Distance from location to destination
-		return abs(l.x - destination.x) + abs(l.y - destination.y);
-	}
-	return 0;
+	
+	//Return Manhattan Distance from location to destination
+	return abs(l.x - destination.x) + abs(l.y - destination.y);
+	
 }
 
 int GridPathPlanner::GetNumExpansionsFromLastSearch() {
