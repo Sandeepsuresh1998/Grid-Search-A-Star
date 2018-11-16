@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 GridPathPlanner::GridPathPlanner(PartiallyKnownGrid* grid_, xyLoc destination_, bool adaptive_, bool larger_g_) {
 	grid = grid_;
 	destination = destination_;
@@ -20,6 +21,7 @@ GridPathPlanner::~GridPathPlanner(){
 
   
 void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
+	cout << "Called" << endl;
 	
 	num_expansions = 0;
 
@@ -30,23 +32,20 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
   // - Extract path
   // - Update heuristic if adaptive
 
+	//Create Grid to hold xyLoc Holder struct. All information can come from here.
+	xyLocHolder grid_info[grid->GetWidth()][grid->GetHeight()];	
+
 	//Creating the closed set
 	std::set<xyLoc> closed_set;
 
 	//Creating the open set with pairs of f-value and Locations
-	//This allows for sorting by smallest f-value
 	priority_queue< pair< int, xyLoc > , vector< pair< int, xyLoc> >, greater< pair< int, xyLoc > > > open_set;
-	open_set.push(make_pair(GetHValue(start) + 0, start)); //No g(s) bc it is the start node
+
+
+	open_set.push(make_pair(GetHValue(start) + 0, start));
 	closed_set.insert(start);
+	grid_info[start.x][start.y] = xyLocHolder(kInvalidXYLoc, 0, GetHValue(start), start);
 
-	//Map to remember where each cell came from key = xyloc, value = where xyloc came from
-	map < xyLoc, xyLoc > path_map;
-	path_map.insert(make_pair(start, start));
-
-	map< xyLoc, int > g_value_map;
-	g_value_map.insert(make_pair(start, 0));
-
-	//TODO: We need to be able to trace back the path, so having a map where each thing location came from would be useful
 
 	//Keep iterating until we have no more nodes to explore. 
 	//If we find the goal state we break.
@@ -57,23 +56,25 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 
 		//We found goal state
 		if(current == destination) {
-
 			path.insert(path.begin(), current);
 
 			//Creating the path
-			while(path_map[current] != start) {
+			while(grid_info[current.x][current.y].parent != start) {
+					
 				//Add where the cell came from
-				path.insert(path.begin(), path_map[current]);
+				path.insert(path.begin(), grid_info[current.x][current.y].parent);
 
 				//Update current
-				current = path_map[current];
+				current = grid_info[current.x][current.y].parent;
+
+				if(current == start) {
+					cout << "WHOA" << endl;
+				}
 			}
 
 			//Add the starting cell
 			path.insert(path.begin(), start);
 
-			// //We need to reverse this
-			// reverse(path.begin(), path.end());
 
 			return;
 
@@ -100,18 +101,22 @@ void GridPathPlanner::FindPath(xyLoc start, std::vector<xyLoc> & path) {
 			if(!(grid->IsValidLocation(neighbors[i]))) {
 				continue;
 			} else {
+
 				//If location is blocked
 				if(!(grid->IsBlocked(neighbors[i]))) {
 					//If we spot hasn't been searched before, let's add it to the list
 					if(closed_set.find(neighbors[i]) == closed_set.end()) {
-						//Add G value to map
-						g_value_map.insert(make_pair(neighbors[i], g_value_map[current] + 1));
-
 						//Add loc to open and closed set				
-						open_set.push(make_pair(GetHValue(neighbors[i]) + g_value_map[neighbors[i]], neighbors[i]));
+						//Adding the neighbors to the grid info
+						int g_value = grid_info[current.x][current.y].g_val + 1;
+						open_set.push(make_pair(g_value + GetHValue(neighbors[i]), neighbors[i]));
 						closed_set.insert(neighbors[i]);
-						path_map[neighbors[i]] = current;
 						num_expansions += 1;
+
+						//Updating Grid info
+						grid_info[neighbors[i].x][neighbors[i].y].parent = current;
+						grid_info[neighbors[i].x][neighbors[i].y].g_val = g_value;
+						grid_info[neighbors[i].x][neighbors[i].y].h_val = GetHValue(neighbors[i]);
 					} else {
 						closed_set.insert(neighbors[i]);
 						continue;

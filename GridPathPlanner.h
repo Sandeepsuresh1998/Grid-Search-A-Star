@@ -3,6 +3,34 @@
 
 #include "PartiallyKnownGrid.h"
 
+
+struct xyLocHolder{
+public: 
+	xyLocHolder(xyLoc parent_,int g, int h, xyLoc self) {
+		parent = parent_;
+		g_val = g;
+		h_val = h;
+		loc = self;
+	}
+	xyLocHolder() {
+		g_val = -1;
+		h_val = -1;
+	}
+
+	//Where the location's parent is
+	xyLoc parent;
+
+	//Location's g_val
+	int g_val;
+
+	//Locations h_val
+	int h_val;
+
+	//Location itself
+	xyLoc loc;
+
+};
+
 class GridPathPlanner{
 public:
 	GridPathPlanner(PartiallyKnownGrid* grid_, xyLoc destination_, bool adaptive_, bool larger_g_);
@@ -27,21 +55,6 @@ private:
 	int num_expansions;
 };
 
-struct xyLocHolder {
-public: 
-	//Where the location's parent is
-	xyLoc parent;
-
-	//Location's g_val
-	int g_val;
-
-	//Locations h_val
-	int h_val;
-
-	//Location itself
-	xyLoc loc;
-
-}
 
 #endif
 
