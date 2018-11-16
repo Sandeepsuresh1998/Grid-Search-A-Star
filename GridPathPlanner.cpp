@@ -136,6 +136,7 @@ int GridPathPlanner::GetHValue(xyLoc l) {
 
 	if(adaptive) {
 		//Return updated h-value of cell
+		
 
 	} else {
 		//Return Manhattan Distance from location to destination

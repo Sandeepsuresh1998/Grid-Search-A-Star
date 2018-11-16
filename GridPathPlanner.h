@@ -27,5 +27,21 @@ private:
 	int num_expansions;
 };
 
+struct xyLocHolder {
+public: 
+	//Where the location's parent is
+	xyLoc parent;
+
+	//Location's g_val
+	int g_val;
+
+	//Locations h_val
+	int h_val;
+
+	//Location itself
+	xyLoc loc;
+
+}
+
 #endif
 
